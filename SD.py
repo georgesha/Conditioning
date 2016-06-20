@@ -25,6 +25,7 @@ import time # give the rative time to record actions
 import math # help do calculation when getting ralative time
 
 # inital variables
+trials = 0
 times = 0 
 interval = 0 
 duration = 0
@@ -63,6 +64,7 @@ output = open('output_sd.txt', 'w', newline='')
 starttime = time.time()
 
 def startpressbutton():
+    global trials
     global times
     global interval
     global duration
@@ -117,15 +119,17 @@ def startpressbutton():
         # whether load the configuration
         # don't read from existing configuration
         if loadVar.get() == 0:
-            times = float(timesEntry.get()) # the value get from GUI window, need to be converted into floating number
+            # the value get from GUI window, need to be converted into floating number
+            trials = float(trialsEntry.get())
+            times = float(timesEntry.get()) 
             interval = float(intervalEntry.get())
             duration = float(durationEntry.get())
             sdinterval = float(sdintervalEntry.get())
             intertrial = float(intertrialEntry.get())
             with open('configuration_sd.csv', 'w', newline='') as f:
                 w = csv.writer(f)
-                w.writerow(["times", "interval", "duration", "sdinterval", "intertrial"])
-                data = [times, interval, duration, sdinterval, intertrial]
+                w.writerow(["trials", "times", "interval", "duration", "sdinterval", "intertrial"])
+                data = [trials, times, interval, duration, sdinterval, intertrial]
                 w.writerow(data)
         # read from existing configuration and print them out
         else:
@@ -137,11 +141,13 @@ def startpressbutton():
                     if count == 1:
                         data = row
                     count += 1
-                times = float(data[0])
-                interval = float(data[1])
-                duration= float(data[2])
-                sdinterval = float(data[3])
-                intertrial = float(data[4])
+                trials = float(data[0])
+                times = float(data[1])
+                interval = float(data[2])
+                duration= float(data[3])
+                sdinterval = float(data[4])
+                intertrial = float(data[5])
+                print("trials: " + str(trials))
                 print("times: " + str(times))
                 print("interval: " + str(interval))
                 print("duration: " + str(duration))
@@ -155,6 +161,7 @@ def startpressbutton():
         run()
 
 def run():
+    global trials
     global times
     global interval
     global duration
@@ -164,6 +171,7 @@ def run():
     global currenttimes
     global looptime
     
+
     # if the difference between current and the start point of the trial is the duration of sd
     # in this statement, use very closing value to represent the equal condition
     # because the loop will be called every 1ms, regarding the deviation, the range is better than exactly equal
@@ -178,6 +186,7 @@ def run():
         outputstr = strtime + " : an sd end with no enough times pressed"
         output.write(outputstr + "\n") # record this action down to the file
         sdpin.write(0) # turn off SD
+
         
         # wait for intertrial interval
         # the reason that break down the delay is in order to update the condition to GUI window 
@@ -211,7 +220,22 @@ def run():
                     output.write(outputstr + "\n")
                     ud3 = 0
                     
-        # start a new trial
+        currenttimes = 0 # reset the value
+        
+        processtime = time.time() - starttime
+        hour = math.floor(processtime // 3600)
+        minute = math.floor(processtime // 60 - (60 * hour))
+        second = round(processtime % 60, 2)
+        strtime = str(hour) + ":" + str(minute) + ":" + str(second)
+        outputstr = strtime + " : SD expired"
+        output.write(outputstr + "\n")
+        
+        trials -= 1 # finish a trial and decrease the count by 1
+
+        # if the count is greater than one, 
+        # which means there remain some trails, start a new trial
+        if trials == 0:
+            exit()
         processtime = time.time() - starttime
         hour = math.floor(processtime // 3600)
         minute = math.floor(processtime // 60 - (60 * hour))
@@ -224,6 +248,7 @@ def run():
         
     if buttonpin.read() == 1:
         if upanddown == 0:
+            print("pressed")
             upanddown = 1
             processtime = time.time() - starttime
             hour = math.floor(processtime // 3600)
@@ -337,7 +362,7 @@ def run():
                     sleep(0.01)
                     
                 currenttimes=0 # reset currenttimes for new trial
-                
+                trials -= 1 # finish a trial and decrease the trial by 1
                 # after feeding
                 # wait for intertrial interval and record the useless presses
                 ud3=0
@@ -368,7 +393,10 @@ def run():
                             output.write(outputstr + "\n")
                             ud3 = 0
                             
-                # start a new trail and record the time 
+                # if the count is greater than one, 
+                # which means there remain some trails, start a new trial
+                if trials == 0:
+                    exit()
                 processtime = time.time() - starttime
                 hour = math.floor(processtime // 3600)
                 minute = math.floor(processtime // 60 - (60 * hour))
@@ -389,8 +417,7 @@ def run():
             outputstr = strtime + " : rat releases the button, RR's rising edge"
             output.write(outputstr + "\n")
             upanddown = 0
-            
-    # recall itself every 1milisecond in order to keep monitoring the press         
+    # recall itself every 1 milisecond in order to keep monitoring the press  
     top.after(1,run)
 
 
@@ -417,34 +444,40 @@ loadVar = tkinter.IntVar()
 loadCheckBox = tkinter.Checkbutton(top, text = "load config?", variable = loadVar)
 loadCheckBox.grid(column = 2, row = 2)
 
+# the number of trials
+tkinter.Label(top, text = "trials: ").grid(column = 1, row = 3)
+trialsEntry = tkinter.Entry(top)
+trialsEntry.grid(column = 2, row = 3)
+trialsEntry.focus_set()
+
 # the times need to active the feeding
-tkinter.Label(top, text = "Criterion: ").grid(column = 1, row = 3)
+tkinter.Label(top, text = "Criterion: ").grid(column = 1, row = 4)
 timesEntry = tkinter.Entry(top)
-timesEntry.grid(column = 2, row = 3)
+timesEntry.grid(column = 2, row = 4)
 timesEntry.focus_set()
 
 # the interval between receive and act
-tkinter.Label(top, text = "Interval: ").grid(column = 1, row = 4)
+tkinter.Label(top, text = "Interval: ").grid(column = 1, row = 5)
 intervalEntry = tkinter.Entry(top)
-intervalEntry.grid(column = 2, row = 4)
+intervalEntry.grid(column = 2, row = 5)
 intervalEntry.focus_set()
 
 # how long will the feeding last
-tkinter.Label(top, text = "Duration: ").grid(column = 1, row = 5)
+tkinter.Label(top, text = "Duration: ").grid(column = 1, row = 6)
 durationEntry = tkinter.Entry(top)
-durationEntry.grid(column = 2, row = 5)
+durationEntry.grid(column = 2, row = 6)
 durationEntry.focus_set()
 
 # the interval between each time
-tkinter.Label(top, text = "SD Duration: ").grid(column = 1, row = 6)
+tkinter.Label(top, text = "SD Duration: ").grid(column = 1, row = 7)
 sdintervalEntry = tkinter.Entry(top)
-sdintervalEntry.grid(column = 2, row = 6)
+sdintervalEntry.grid(column = 2, row = 7)
 sdintervalEntry.focus_set()
 
 # the intertrial between each time
-tkinter.Label(top, text = "Intertrial interval: ").grid(column = 1, row = 7)
+tkinter.Label(top, text = "Intertrial interval: ").grid(column = 1, row = 8)
 intertrialEntry = tkinter.Entry(top)
-intertrialEntry.grid(column = 2, row = 7)
+intertrialEntry.grid(column = 2, row = 8)
 intertrialEntry.focus_set()
 
 
@@ -452,11 +485,11 @@ intertrialEntry.focus_set()
 
 # button for main function
 startButton = tkinter.Button(top, text="Start", command=startpressbutton)
-startButton.grid(column=2, row=8)
+startButton.grid(column=2, row=9)
 
 # exit button
 exitButton = tkinter.Button(top, text="Exit", command=exit)
-exitButton.grid(column=3, row=8)
+exitButton.grid(column=3, row=9)
 
 
 
