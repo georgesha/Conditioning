@@ -21,9 +21,21 @@ import pyfirmata # Arduino Uno board
 import csv # saving information to files
 import random # randomly choose the interval
 import sys # correctly shut down the program
+import arduino
+
+#_____________________________________________________________________________#
+#_____________________________________________________________________________#
 
 
-#define the sub-function for each mode
+# define the sub-function for each action
+
+           
+
+
+#__________________________________________________________________________________#
+#__________________________________________________________________________________#
+
+#define the flow function for each mode
 
 #forward
 i1 = 1 # count for the number of trials
@@ -31,69 +43,25 @@ def forward (t,dur_c,dur_u,btw,inter,r,g):
     global i1 
     
     # if there is no overlap between CS and US
-    if btw>=0:
-        # write the state of LEDs according to the choice of user
-        redPin.write(r)
-        greenPin.write(g)
-        
-        # delay for duration of CS and turn off the LED
-        # the reason that break down the delay is in order to update the condition to GUI window 
-        # to avoid it fall into 'No responding'
-        i=1
-        dur_c_sec = dur_c * 100
-        while i <=  dur_c_sec: # loop for delay
-            i += 1
-            top.update()
-            sleep(0.01)
-        redPin.write(0) # turn off LED
-        greenPin.write(0)
-        
+    if btw>=0:  
+        # turn on CS
+        arduino.cs(g,r)
+        # delay for the duration of CS
+        arduino.delay(dur_c,top)
+        # turn off CS
+        arduino.cs(0,0)        
         # delay for the interval between CS and US
-        i=1
-        btw_sec = btw * 100
-        while i <=  btw_sec:
-            i += 1
-            top.update()
-            sleep(0.01)
-        
-        # deliver the food using servo
-        for i in range(0, 180):
-            board.digital[servoPin].write(i) 
-            # well-built function to control servo which make the user can directly write the angle of servo
-            top.update()
-            sleep(0.01)
+        arduino.delay(btw,top)
+        # deliver food
+        arduino.food("delive",board,servoPin,top)
         # delay for the duration of US
-        dur_u_sec = dur_u * 100
-        while i <=  dur_u_sec:
-            i += 1
-            top.update()
-            sleep(0.01)
-        # remove the food
-        for i in range(180, 1, -1):
-            board.digital[servoPin].write(i)
-            top.update()
-            sleep(0.01)
+        arduino.delay(dur_u,top)
+        # remove food
+        arduino.food("remove",board,servoPin,top)
+        # delay for the inter-trial interval
+        arduino.delay(inter,top)
         
-        # consider the choice of intertrial interval
-        # if it is selected as random, the program will automatically selected from two to eight seconds
-        if inter=="random":
-            j = float(random.randint(2,8))
-            print ("intertrial interval: %s" % j)
-            # print the random choice out
-            j_sec = j * 100
-            while i <=  j_sec:
-                i += 1
-                top.update()
-                sleep(0.01)
-        else:
-            sec = inter * 100
-            while i <=  sec:
-                i += 1
-                top.update()
-                sleep(0.01)
-        
-        # increase the number of trails
-        i1 += 1
+        i1 += 1 # increase the number of trails
         # if the amount has not matched the requirement, call the function for this mode again
         if i1 <= t:
             forward (t,dur_c,dur_u,btw,inter,r,g)
@@ -102,124 +70,50 @@ def forward (t,dur_c,dur_u,btw,inter,r,g):
     else:
         # If CS is gone before US
         if -1*btw<=dur_u: # -1 due to the negative value for overlap
-            redPin.write(r)
-            greenPin.write(g)
-            
-            # first delay for the time until US is supposed to present
-            mix_sec = (dur_c+btw) * 100
-            while i <=  mix_sec:
-                i += 1
-                top.update()
-                sleep(0.01)
-            
-            # deliver the food
-            for i in range(0, 180):
-                board.digital[servoPin].write(i)
-                top.update()
-                sleep(0.01)
-            
-            # keep presenting CS until the time of the overlap passes 
-            # then turn off CS
-            btw_sec = (-1*btw) * 100
-            while i <=  btw_sec:
-                i += 1
-                top.update()
-                sleep(0.01)
-            redPin.write(0)
-            greenPin.write(0)
-            
-            # keep presenting US until the time of it has been fulfilled
-            # then remove the food
-            mix_sec = (btw+dur_u) * 100
-            while i <=  mix_sec:
-                i += 1
-                top.update()
-                sleep(0.01)
-            sleep(btw+dur_u)
-            for i in range(180, 1, -1):
-                board.digital[servoPin].write(i)
-                top.update()
-                sleep(0.01)
-                
-            # intertrial interval
-            if inter=="random":
-                j = float(random.randint(2,8))
-                print ("intertrial interval: %s" % j)
-                j_sec = j * 100
-                while i <=  j_sec:
-                    i += 1
-                    top.update()
-                    sleep(0.01)
-            else:
-                sec = inter * 100
-                while i <=  sec:
-                    i += 1
-                    top.update()
-                    sleep(0.01)
-            
-            # check if the number of trials matches
-            i1 += 1
+            # turn on CS
+            arduino.cs(g,r)
+            # delay for the time until US is supposed to present
+            arduino.delay(dur_c+btw,top)
+            # deliver food
+            arduino.food("deliver",board,servoPin,top)
+            # delay for the time until the overlap of CS has passed,
+            # i.e., the interval between CS and US
+            arduino.delay(-1*btw,top)
+            # turn off CS
+            arduino.cs(0,0)
+            # delay for the time until the duration of it has been fulfilled
+            arduino.delay(btw+dur_u,top)
+            # remove food
+            arduino.food("remove",board,servoPin,top)
+            # delay for the inter-trial interval
+            arduino.delay(inter,top)
+        
+            i1 += 1 # increase the number of trails
+            # if the amount has not matched the requirement, call the function for this mode again
             if i1 <= t:
                 forward (t,dur_c,dur_u,btw,inter,r,g)
         
         # cs is gone after us
         else: 
-            redPin.write(r)
-            greenPin.write(g)
-            
-            # first delay for the time until US is supposed to present
-            # and deliver the food
-            mix_sec = (dur_c+btw) * 100
-            while i <=  mix_sec:
-                i += 1
-                top.update()
-                sleep(0.01)
-            for i in range(0, 180):
-                board.digital[servoPin].write(i)
-                top.update()
-                sleep(0.01)
-                
-            # delay for the time that US needs to be presented
-            # then remove the food
-            dur_u_sec = dur_u * 100
-            while i <=  dur_u_sec:
-                i += 1
-                top.update()
-                sleep(0.01)
-            for i in range(180, 1, -1):
-                board.digital[servoPin].write(i)
-                top.update()
-                sleep(0.01)
-                
-            # keep presenting the CS until the time of it has been fulfilled
-            # then turn off it
-            mix_sec = (dur_c+btw-dur_u) * 100
-            while i <=  mix_sec:
-                i += 1
-                top.update()
-                sleep(0.01)
-            sleep(dur_c+btw-dur_u)
-            redPin.write(0)
-            greenPin.write(0)
-            
-            # intertrial interval
-            if inter=="random":
-                j = float(random.randint(2,8))
-                print ("intertrial interval: %s" % j)
-                j_sec = j * 100
-                while i <=  j_sec:
-                    i += 1
-                    top.update()
-                    sleep(0.01)
-            else:
-                sec = inter * 100
-                while i <=  sec:
-                    i += 1
-                    top.update()
-                    sleep(0.01)
-            
-            # check the number of trials
-            i1 += 1
+            # turn on CS
+            arduino.cs(g,r)
+            # delay until US is supposed to present
+            arduino.delay(dur_c+btw,top)
+            # deliver food
+            arduino.food("deliver",board,servoPin,top)
+            # delay for the duration of US
+            arduino.delay(dur_u,top)
+            # remove food
+            arduino.food("remove",board,servoPin,top)
+            # delay until fulfill the duration of CS
+            arduino.delay(dur_c+btw-dur_u,top)
+            # turn off CS
+            arduino.cs(0,0)
+            # delay for the inter-trial interval
+            arduino.delay(inter,top)
+        
+            i1 += 1 # increase the number of trails
+            # if the amount has not matched the requirement, call the function for this mode again
             if i1 <= t:
                 forward (t,dur_c,dur_u,btw,inter,r,g)
                 
@@ -228,35 +122,17 @@ i2 = 1 # count for the number of trials
 def temporal(t,dur_u,inter):
     global i2
     
-    # deliver the food
-    for i in range(0, 180):
-        board.digital[servoPin].write(i)
-        top.update()
-        sleep(0.01)
-    
-    # stay for the duration of US
-    dur_u_sec = dur_u * 100
-    while i <=  dur_u_sec:
-        i += 1
-        top.update()
-        sleep(0.01)
-    
-    # remove the food
-    for i in range(180, 1, -1):
-        board.digital[servoPin].write(i)
-        top.update()
-        sleep(0.01)
+    # deliver food
+    arduino.food("deliver",board,servoPin,top)
+    # delay for the duration of US
+    arduino.delay(dur_u,top)
+    # remove food
+    arduino.food("remove",board,servoPin,top)  
+    # delay for the inter-trial interval
+    arduino.delay(inter,top)
         
-    # wait for the time of intertrial interval
-    inter_sec = inter * 100
-    while i <=  inter_sec:
-        i += 1
-        top.update()
-        sleep(0.01)
-        
-    # increase the number of trials
+    i2 += 1 # increase the number of trials    
     # if the amount has not matched the requirement, call the function for this mode again
-    i2 += 1
     if i2 <= t:
         temporal(t,dur_u,inter)
         
@@ -265,148 +141,84 @@ def temporal(t,dur_u,inter):
 i3 = 1
 def blocking(t,dur_c,dur_u,btw,inter):
     global i3
-    i = 1
-    if btw>=0:
-        while i <= t:
-            redPin.write(1)
-            greenPin.write(1)
-            dur_c_sec = dur_c * 100
-            while i <=  dur_c_sec:
-                i += 1
-                top.update()
-                sleep(0.01)
-            redPin.write(0)
-            greenPin.write(0)
-            btw_sec = btw * 100
-            while i <=  btw_sec:
-                i += 1
-                top.update()
-                sleep(0.01)
-            for i in range(0, 180):
-                board.digital[servoPin].write(i)
-                top.update()
-                sleep(0.01)
-            dur_u_sec = dur_u * 100
-            while i <=  dur_u_sec:
-                i += 1
-                top.update()
-                sleep(0.01)
-            for i in range(180, 1, -1):
-                board.digital[servoPin].write(i)
-                top.update()
-                sleep(0.01)
-            if inter=="random":
-                j = float(random.randint(2,8))
-                print ("intertrial interval: %s" % j)
-                j_sec = j * 100
-                while i <=  j_sec:
-                    i += 1
-                    top.update()
-                    sleep(0.01)
-            else:
-                inter_sec = inter * 100
-                while i <=  inter_sec:
-                    i += 1
-                    top.update()
-                    sleep(0.01)
-            i3 += 1
-            if i3 <= t:
-                blocking(t,dur_c,dur_u,btw,inter)
+    
+    # if there is no overlap between CS and US
+    if btw>=0:  
+        # turn on CS
+        arduino.cs(1,1)
+        # delay for the duration of CS
+        arduino.delay(dur_c,top)
+        # turn off CS
+        arduino.cs(0,0)        
+        # delay for the interval between CS and US
+        arduino.delay(btw,top)
+        # deliver food
+        arduino.food("deliver",board,servoPin,top)
+        # delay for the duration of US
+        arduino.delay(dur_u,top)
+        # remove food
+        arduino.food("remove",board,servoPin,top)
+        # delay for the inter-trial interval
+        arduino.delay(inter,top)
+        
+        i3 += 1 # increase the number of trails
+        # if the amount has not matched the requirement, call the function for this mode again
+        if i3 <= t:
+            blocking (t,dur_c,dur_u,btw,inter)
+            
+    # if there is overlap between CS and US
     else:
-        if -1*btw<=dur_u: #cs is gone before us
-            while i<=t:
-                redPin.write(1)
-                greenPin.write(1)
-                mix_sec = (dur_c+btw) * 100
-                while i <=  mix_sec:
-                    i += 1
-                    top.update()
-                    sleep(0.01)
-                for i in range(0, 180):
-                    board.digital[servoPin].write(i)
-                    top.update()
-                    sleep(0.01)
-                btw_sec = (-1*btw) * 100
-                while i <=  btw_sec:
-                    i += 1
-                    top.update()
-                    sleep(0.01)
-                redPin.write(0)
-                greenPin.write(0)
-                mix_sec = (btw+dur_u) * 100
-                while i <=  mix_sec:
-                    i += 1
-                    top.update()
-                    sleep(0.01)
-                for i in range(180, 1, -1):
-                    board.digital[servoPin].write(i)
-                    top.update()
-                    sleep(0.01)
-                if inter=="random":
-                    j = float(random.randint(2,8))
-                    print ("intertrial interval: %s" % j)
-                    j_sec = j * 100
-                    while i <=  j_sec:
-                        i += 1
-                        top.update()
-                        sleep(0.01)
-                else:
-                    inter_sec = inter * 100
-                    while i <=  inter_sec:
-                        i += 1
-                        top.update()
-                        sleep(0.01)
-                i3 += 1
-                if i3 <= t:
-                    blocking(t,dur_c,dur_u,btw,inter)
-        else: #cs is gone after us
-            while i<=t:
-                redPin.write(1)
-                greenPin.write(1)
-                mix_sec = (dur_c+btw) * 100
-                while i <=  mix_sec:
-                    i += 1
-                    top.update()
-                    sleep(0.01)
-                for i in range(0, 180):
-                    board.digital[servoPin].write(i)
-                    top.update()
-                    sleep(0.01)
-                dur_u_sec = dur_u * 100
-                while i <=  dur_u_sec:
-                    i += 1
-                    top.update()
-                    sleep(0.01)
-                for i in range(180, 1, -1):
-                    board.digital[servoPin].write(i)
-                    top.update()
-                    sleep(0.01)
-                mix_sec = (dur_c+btw-dur_u) * 100
-                while i <=  mix_sec:
-                    i += 1
-                    top.update()
-                    sleep(0.01)
-                redPin.write(0)
-                greenPin.write(0)
-                if inter=="random":
-                    j = float(random.randint(2,8))
-                    print ("intertrial interval: %s" % j)
-                    j_sec = j * 100
-                    while i <=  j_sec:
-                        i += 1
-                        top.update()
-                        sleep(0.01)
-                else:
-                    inter_sec = inter * 100
-                    while i <=  inter_sec:
-                        i += 1
-                        top.update()
-                        sleep(0.01)
-                i3 += 1
-                if i3 <= t:
-                    blocking(t,dur_c,dur_u,btw,inter)
+        # If CS is gone before US
+        if -1*btw<=dur_u: # -1 due to the negative value for overlap
+            # turn on CS
+            arduino.cs(1,1)
+            # delay for the time until US is supposed to present
+            arduino.delay(dur_c+btw,top)
+            # deliver food
+            arduino.food("deliver",board,servoPin,top)
+            # delay for the time until the overlap of CS has passed,
+            # i.e., the interval between CS and US
+            arduino.delay(-1*btw,top)
+            # turn off CS
+            arduino.cs(0,0)
+            # delay for the time until the duration of it has been fulfilled
+            arduino.delay(btw+dur_u,top)
+            # remove food
+            arduino.food("remove",board,servoPin,top)
+            # delay for the inter-trial interval
+            arduino.delay(inter,top)
+        
+            i3 += 1 # increase the number of trails
+            # if the amount has not matched the requirement, call the function for this mode again
+            if i3 <= t:
+                blocking (t,dur_c,dur_u,btw,inter)
+        
+        # cs is gone after us
+        else: 
+            # turn on CS
+            arduino.cs(1,1)
+            # delay until US is supposed to present
+            arduino.delay(dur_c+btw,top)
+            # deliver food
+            arduino.food("deliver",board,servoPin,top)
+            # delay for the duration of US
+            arduino.delay(dur_u,top)
+            # remove food
+            arduino.food("remove",board,servoPin,top)
+            # delay until fulfill the duration of CS
+            arduino.delay(dur_c+btw-dur_u,top)
+            # turn off CS
+            arduino.cs(0,0)
+            # delay for the inter-trial interval
+            arduino.delay(inter,top)
+        
+            i3 += 1 # increase the number of trails
+            # if the amount has not matched the requirement, call the function for this mode again
+            if i3 <= t:
+                forward (t,dur_c,dur_u,btw,inter)
 
-
+#_____________________________________________________________________________________#
+#_____________________________________________________________________________________#
 
     
 #function for start button
@@ -462,7 +274,7 @@ def onStartButtonPress():
         # and save them to the configuration files
         else:
             t = float(trial.get())
-            dur_c = float(cs.get())
+            dur_c = float(cstimulus.get())
             dur_u = float(us.get())
             btw = float(between.get())
             if randomVar.get():
@@ -508,13 +320,14 @@ def pressexit():
     sys.exit()
 
 
-
+#_____________________________________________________________________________________#
+#_____________________________________________________________________________________#
 
 #associate the port
 port = 'COM9'
 board = pyfirmata.Arduino(port)
 
-# Define pins and corresponding modes
+# Define pins
 greenPin = board.get_pin('d:11:o')
 redPin = board.get_pin('d:12:o')
 servoPin = 13
@@ -555,9 +368,9 @@ tkinter.Label(top,
 #cs  
 tkinter.Label(top,
               text="cs duration: ").grid(column=1, row=4)
-cs = tkinter.Entry(top)
-cs.grid(column=2, row=4)
-cs.focus_set()
+cstimulus = tkinter.Entry(top)
+cstimulus.grid(column=2, row=4)
+cstimulus.focus_set()
 tkinter.Label(top,
               text="seconds").grid(column=3, row=4)
 

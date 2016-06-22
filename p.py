@@ -23,7 +23,7 @@ import sys # correctly shut down the program
 import time # give the rative time to record actions 
 import math # help do calculation when getting ralative time
 from random import randint # to randomly select from a range or a list
-
+import arduino
 
 # inital variables
 times = 0 # how many times does the rat need to get the reward
@@ -41,10 +41,10 @@ it = pyfirmata.util.Iterator(board)
 it.start()
 
 # Define pins
-buttonpin = board.get_pin('d:3:i')
+buttonPin = board.get_pin('d:3:i')
 servoPin = 13
 board.digital[servoPin].mode = pyfirmata.SERVO
-LEDpin = board.get_pin('d:11:o')
+LEDPin = board.get_pin('d:11:o')
 
 # start time of the experiment
 starttime = time.time()
@@ -84,13 +84,13 @@ def pressbutton():
         currenttimes = 0
         upanddown = 0
         while True:
-            if buttonpin.read() == 1: # if button is pressed, .read() will return 1
+            if buttonPin.read() == 1: # if button is pressed, .read() will return 1
                 if upanddown == 0:
                     upanddown = 1
-                    LEDpin.write(1)
+                    LEDPin.write(1)
                     top.update()
                     sleep(0.1)
-                    LEDpin.write(0) # make the LED blink once to indicate the press lead to reward
+                    LEDPin.write(0) # make the LED blink once to indicate the press lead to reward
                     currenttimes += 1;
                     
                     # if one press is detected, deliver the food
@@ -99,22 +99,14 @@ def pressbutton():
                         top.update()
                         sleep(1)
                         print ('start feeding')
-                        for i in range(0, 180):
-                            # well-built function to control servo 
-                            # which make the user can directly write the angle of servo
-                            board.digital[servoPin].write(i)
-                            top.update()
-                            sleep(0.01)
+                        arduino.food("deliver",board,servoPin,top)
                         print ('stay feeding')
                         sleep(2)
                         print ('feeding end')
-                        for i in range(180, 1, -1):
-                            board.digital[servoPin].write(i)
-                            top.update()
-                            sleep(0.01)
+                        arduino.food("remove",board,servoPin,top)
                         currenttimes = 0 # reset currenttimes
                 if upanddown == 1:
-                    if buttonpin.read() == 0:
+                    if buttonPin.read() == 0:
                         upanddown = 0
                         
     # implement the experiment    
@@ -175,23 +167,11 @@ def run():
     global duration
     global step
     global gap
-    if buttonpin.read() == 1:
+    if buttonPin.read() == 1:
         if upanddown == 0:
             upanddown = 1
-            print("pressed")
-            #calculate the relative time for the press
-            processtime = time.time() - starttime # unit in second
-            hour = math.floor(processtime // 3600) # calculate hour
-            minute = math.floor(processtime // 60 - (60 * hour)) # calculate minute
-            second = round(processtime % 60, 2) # calculate seconds containing 2 digit of siginificant figures
-            strtime = str(hour) + ":" + str(minute) + ":" + str(second)# time in the form of hh:mm:ss.xx
-            outputstr = strtime + " : the rat press the button with RR, falling edge" 
-            output.write(outputstr + "\n") # record this action down to the file
-            
-            LEDpin.write(1)
-            top.update()
-            sleep(0.1)
-            LEDpin.write(0)
+            arduino.recordtime(starttime, output, "R")
+            arduino.blink(top, LEDPin)
             
             currenttimes += 1 # increase the number of presses that lead to reward
             
@@ -199,101 +179,7 @@ def run():
             # during this section, all actions and presses that do not lead to reward are recorded to file as well
             if currenttimes == times:
                 #record the time that it achieves the criterion                
-                processtime = time.time() - starttime
-                hour = math.floor(processtime // 3600)
-                minute = math.floor(processtime // 60 - (60 * hour))
-                second = round(processtime % 60, 2)
-                strtime = str(hour) + ":" + str(minute) + ":" + str(second)
-                outputstr = strtime + " : enough times were pressed"
-                output.write(outputstr + "\n")
-                
-                totaltimes+=1 # increse the amount of trails that the rat has completed
-                
-                # sleep for 'interval' seconds and record the useless presses
-                # the reason that break down the delay is in order to update the condition to GUI window 
-                # to avoid it fall into 'No responding'
-                # also, during this process, useless presses can be detected and recorded
-                ud1=0
-                m=0
-                while m<= interval: # loop for delay
-                    m+=1
-                    top.update()
-                    sleep(0.01)
-                    if buttonpin.read() == 1:
-                        if ud1 == 0:
-                            ud1 = 1
-                            processtime = time.time() - starttime
-                            hour = math.floor(processtime // 3600)
-                            minute = math.floor(processtime // 60 - (60 * hour))
-                            second = round(processtime % 60, 2)
-                            strtime = str(hour) + ":" + str(minute) + ":" + str(second)
-                            outputstr = strtime + " : the rat press the button with NR"
-                            output.write(outputstr + "\n")
-                    if ud1 == 1:                        
-                        if buttonpin.read() == 0:
-                            processtime = time.time() - starttime
-                            hour = math.floor(processtime // 3600)
-                            minute = math.floor(processtime // 60 - (60 * hour))
-                            second = round(processtime % 60, 2)
-                            strtime = str(hour) + ":" + str(minute) + ":" + str(second)
-                            outputstr = strtime + " : the rat release the button"
-                            output.write(outputstr + "\n")                            
-                            ud1 = 0
-                
-                #delivery food and record the time down
-                processtime = time.time() - starttime
-                hour = math.floor(processtime // 3600)
-                minute = math.floor(processtime // 60 - (60 * hour))
-                second = round(processtime % 60, 2)
-                strtime = str(hour) + ":" + str(minute) + ":" + str(second)
-                outputstr = strtime + " : begin feeding"
-                output.write(outputstr + "\n")                   
-                for i in range(0, 180):
-                    board.digital[servoPin].write(i)
-                    top.update()
-                    sleep(0.01)
-                    
-                # stay feeding and record the useless presses
-                ud2=0
-                m=0
-                while m<= duration:
-                    m+=1
-                    top.update()
-                    sleep(0.01)
-                    if buttonpin.read() == 1:
-                        if ud2 == 0:
-                            ud2 = 1
-                            processtime = time.time() - starttime
-                            hour = math.floor(processtime // 3600)
-                            minute = math.floor(processtime // 60 - (60 * hour))
-                            second = round(processtime % 60, 2)
-                            strtime = str(hour) + ":" + str(minute) + ":" + str(second)
-                            outputstr = strtime + " : the rat press the button with NR"
-                            output.write(outputstr + "\n")
-                    if ud2 == 1:
-                        if buttonpin.read() == 0:
-                            processtime = time.time() - starttime
-                            hour = math.floor(processtime // 3600)
-                            minute = math.floor(processtime // 60 - (60 * hour))
-                            second = round(processtime % 60, 2)
-                            strtime = str(hour) + ":" + str(minute) + ":" + str(second)
-                            outputstr = strtime + " : the rat release the button"
-                            output.write(outputstr + "\n")
-                            ud2 = 0
-                            
-                # remove the food and record the time down
-                processtime = time.time() - starttime
-                hour = math.floor(processtime // 3600)
-                minute = math.floor(processtime // 60 - (60 * hour))
-                second = round(processtime % 60, 2)
-                strtime = str(hour) + ":" + str(minute) + ":" + str(second)
-                outputstr = strtime + " : finish feeding"
-                output.write(outputstr + "\n")
-                for i in range(180, 1, -1):
-                    board.digital[servoPin].write(i)
-                    top.update()
-                    sleep(0.01)
-                currenttimes=0 # reset currenttimes for new trial
+                currenttimes = arduino.achieve(interval,duration,servoPin,buttonPin,starttime,output,board,top)
                 
                 # for every certain trails, the criterion need to be increased
                 # the trails that increase the criterion is the number that dividable by 'gap'
@@ -306,15 +192,9 @@ def run():
                         times+=step
                 print("current times is: " + str(times)) # print the current criterion out
     if upanddown == 1:
-        if buttonpin.read() == 0:
+        if buttonPin.read() == 0:
             # record the releasing of the button
-            processtime = time.time() - starttime
-            hour = math.floor(processtime // 3600)
-            minute = math.floor(processtime // 60 - (60 * hour))
-            second = round(processtime % 60, 2)
-            strtime = str(hour) + ":" + str(minute) + ":" + str(second)
-            outputstr = strtime + " : rat releases the button, RR's rising edge"
-            output.write(outputstr + "\n")
+            arduino.recordtime(starttime, output, "RL")
             upanddown = 0
             
     # recall itself every 1milisecond in order to keep monitoring the press     
