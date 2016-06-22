@@ -47,19 +47,19 @@ def forward (t,dur_c,dur_u,btw,inter,r,g):
         # turn on CS
         arduino.cs(g,r)
         # delay for the duration of CS
-        arduino.delay(dur_c,top)
+        arduino.c_delay(dur_c,top)
         # turn off CS
         arduino.cs(0,0)        
         # delay for the interval between CS and US
-        arduino.delay(btw,top)
+        arduino.c_delay(btw,top)
         # deliver food
         arduino.food("delive",board,servoPin,top)
         # delay for the duration of US
-        arduino.delay(dur_u,top)
+        arduino.c_delay(dur_u,top)
         # remove food
         arduino.food("remove",board,servoPin,top)
         # delay for the inter-trial interval
-        arduino.delay(inter,top)
+        arduino.c_delay(inter,top)
         
         i1 += 1 # increase the number of trails
         # if the amount has not matched the requirement, call the function for this mode again
@@ -73,20 +73,20 @@ def forward (t,dur_c,dur_u,btw,inter,r,g):
             # turn on CS
             arduino.cs(g,r)
             # delay for the time until US is supposed to present
-            arduino.delay(dur_c+btw,top)
+            arduino.c_delay(dur_c+btw,top)
             # deliver food
             arduino.food("deliver",board,servoPin,top)
             # delay for the time until the overlap of CS has passed,
             # i.e., the interval between CS and US
-            arduino.delay(-1*btw,top)
+            arduino.c_delay(-1*btw,top)
             # turn off CS
             arduino.cs(0,0)
             # delay for the time until the duration of it has been fulfilled
-            arduino.delay(btw+dur_u,top)
+            arduino.c_delay(btw+dur_u,top)
             # remove food
             arduino.food("remove",board,servoPin,top)
             # delay for the inter-trial interval
-            arduino.delay(inter,top)
+            arduino.c_delay(inter,top)
         
             i1 += 1 # increase the number of trails
             # if the amount has not matched the requirement, call the function for this mode again
@@ -98,19 +98,19 @@ def forward (t,dur_c,dur_u,btw,inter,r,g):
             # turn on CS
             arduino.cs(g,r)
             # delay until US is supposed to present
-            arduino.delay(dur_c+btw,top)
+            arduino.c_delay(dur_c+btw,top)
             # deliver food
             arduino.food("deliver",board,servoPin,top)
             # delay for the duration of US
-            arduino.delay(dur_u,top)
+            arduino.c_delay(dur_u,top)
             # remove food
             arduino.food("remove",board,servoPin,top)
             # delay until fulfill the duration of CS
-            arduino.delay(dur_c+btw-dur_u,top)
+            arduino.c_delay(dur_c+btw-dur_u,top)
             # turn off CS
             arduino.cs(0,0)
             # delay for the inter-trial interval
-            arduino.delay(inter,top)
+            arduino.c_delay(inter,top)
         
             i1 += 1 # increase the number of trails
             # if the amount has not matched the requirement, call the function for this mode again
@@ -125,11 +125,11 @@ def temporal(t,dur_u,inter):
     # deliver food
     arduino.food("deliver",board,servoPin,top)
     # delay for the duration of US
-    arduino.delay(dur_u,top)
+    arduino.c_delay(dur_u,top)
     # remove food
     arduino.food("remove",board,servoPin,top)  
     # delay for the inter-trial interval
-    arduino.delay(inter,top)
+    arduino.c_delay(inter,top)
         
     i2 += 1 # increase the number of trials    
     # if the amount has not matched the requirement, call the function for this mode again
@@ -147,19 +147,19 @@ def blocking(t,dur_c,dur_u,btw,inter):
         # turn on CS
         arduino.cs(1,1)
         # delay for the duration of CS
-        arduino.delay(dur_c,top)
+        arduino.c_delay(dur_c,top)
         # turn off CS
         arduino.cs(0,0)        
         # delay for the interval between CS and US
-        arduino.delay(btw,top)
+        arduino.c_delay(btw,top)
         # deliver food
         arduino.food("deliver",board,servoPin,top)
         # delay for the duration of US
-        arduino.delay(dur_u,top)
+        arduino.c_delay(dur_u,top)
         # remove food
         arduino.food("remove",board,servoPin,top)
         # delay for the inter-trial interval
-        arduino.delay(inter,top)
+        arduino.c_delay(inter,top)
         
         i3 += 1 # increase the number of trails
         # if the amount has not matched the requirement, call the function for this mode again
@@ -173,20 +173,20 @@ def blocking(t,dur_c,dur_u,btw,inter):
             # turn on CS
             arduino.cs(1,1)
             # delay for the time until US is supposed to present
-            arduino.delay(dur_c+btw,top)
+            arduino.c_delay(dur_c+btw,top)
             # deliver food
             arduino.food("deliver",board,servoPin,top)
             # delay for the time until the overlap of CS has passed,
             # i.e., the interval between CS and US
-            arduino.delay(-1*btw,top)
+            arduino.c_delay(-1*btw,top)
             # turn off CS
             arduino.cs(0,0)
             # delay for the time until the duration of it has been fulfilled
-            arduino.delay(btw+dur_u,top)
+            arduino.c_delay(btw+dur_u,top)
             # remove food
             arduino.food("remove",board,servoPin,top)
             # delay for the inter-trial interval
-            arduino.delay(inter,top)
+            arduino.c_delay(inter,top)
         
             i3 += 1 # increase the number of trails
             # if the amount has not matched the requirement, call the function for this mode again
@@ -198,19 +198,19 @@ def blocking(t,dur_c,dur_u,btw,inter):
             # turn on CS
             arduino.cs(1,1)
             # delay until US is supposed to present
-            arduino.delay(dur_c+btw,top)
+            arduino.c_delay(dur_c+btw,top)
             # deliver food
             arduino.food("deliver",board,servoPin,top)
             # delay for the duration of US
-            arduino.delay(dur_u,top)
+            arduino.c_delay(dur_u,top)
             # remove food
             arduino.food("remove",board,servoPin,top)
             # delay until fulfill the duration of CS
-            arduino.delay(dur_c+btw-dur_u,top)
+            arduino.c_delay(dur_c+btw-dur_u,top)
             # turn off CS
             arduino.cs(0,0)
             # delay for the inter-trial interval
-            arduino.delay(inter,top)
+            arduino.c_delay(inter,top)
         
             i3 += 1 # increase the number of trails
             # if the amount has not matched the requirement, call the function for this mode again
