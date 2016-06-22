@@ -118,7 +118,7 @@ def cs(green_state,red_state):
     redPin.write(red_state)
    
 #delay for classical
-def delay(time,top):
+def c_delay(time,top):
     # consider for some cases that the delay is randomly selected
     if time=="random":
         time = float(random.randint(2,8))
