@@ -180,21 +180,7 @@ def run():
         # the reason that break down the delay is in order to update the condition to GUI window 
         # to avoid it fall into 'No responding'
         # also, during this process, useless presses can be detected and recorded
-        ud3=0
-        i=0
-        t=intertrial*100
-        while i<= t:
-            i+=1
-            top.update()
-            sleep(0.01)
-            if buttonPin.read() == 1:
-                if ud3 == 0:
-                    ud3 = 1
-                    arduino.recordtime(starttime, output, "N")
-            if ud3 == 1:
-                if buttonPin.read() == 0:
-                    arduino.recordtime(starttime, output, "RL")
-                    ud3 = 0
+        arduino.delay(intertrial,starttime,buttonPin,output,board,top)
                     
         currenttimes = 0 # reset the value
         
@@ -229,21 +215,7 @@ def run():
                 trials -= 1 # finish a trial and decrease the trial by 1
                 # after feeding
                 # wait for intertrial interval and record the useless presses
-                ud3=0
-                i=0
-                t=intertrial*100
-                while i<= t:
-                    i+=1
-                    top.update()
-                    sleep(0.01)
-                    if buttonPin.read() == 1:
-                        if ud3 == 0:
-                            ud3 = 1
-                            arduino.recordtime(starttime, output, "N")
-                    if ud3 == 1:
-                        if buttonPin.read() == 0:
-                            arduino.recordtime(starttime, output, "RL")
-                            ud3 = 0
+                arduino.delay(intertrial,starttime,buttonPin,output,board,top)
                             
                 # if the count is greater than one, 
                 # which means there remain some trails, start a new trial
