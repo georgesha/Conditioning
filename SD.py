@@ -34,7 +34,7 @@ sdinterval = 0
 intertrial = 0
 
 #associate the port
-port = 'COM9'
+port = 'COM7'
 board = pyfirmata.Arduino(port)
 
 # Using iterator thread to avoid buffer overflow
@@ -211,7 +211,9 @@ def run():
             # during this section, all actions and presses that do not lead to reward are recorded to file as well
             if currenttimes == times:
                 sdPin.write(0) # stop SD first
-                currenttimes = arduino.achieve(interval,duration,servoPin,buttonPin,starttime,output,board,top)
+                arduino.recordtime(starttime, output, "E")
+                arduino.delay(interval,starttime,buttonPin,output,board,top)
+                currenttimes = arduino.achieve(duration,servoPin,buttonPin,starttime,output,board,top)
                 trials -= 1 # finish a trial and decrease the trial by 1
                 # after feeding
                 # wait for intertrial interval and record the useless presses
@@ -235,6 +237,8 @@ def run():
 
 # exit button function
 def exit():
+    sdPin.write(0)
+    LEDPin.write(0)
     board.exit()
     top.destroy()
     sys.exit()
