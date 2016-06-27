@@ -315,6 +315,7 @@ def onStartButtonPress():
     
 # define the function of exit
 def pressexit():
+    LEDPin.write(0)
     board.exit()
     top.destroy()
     sys.exit()
@@ -324,7 +325,7 @@ def pressexit():
 #_____________________________________________________________________________________#
 
 #associate the port
-port = 'COM9'
+port = 'COM7'
 board = pyfirmata.Arduino(port)
 
 # Define pins
