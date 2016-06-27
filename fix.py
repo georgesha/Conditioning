@@ -30,7 +30,7 @@ interval = 0 # the interval between receiving input from button and begin feedin
 duration = 0 # how long staying feeding
 
 # associate the port
-port = 'COM9'
+port = 'COM7'
 board = pyfirmata.Arduino(port)
 
 # Using iterator thread to avoid buffer overflow
@@ -155,7 +155,9 @@ def run():
             # if the rat achieve the criterion, that actions according to the time sequence
             # during this section, all actions and presses that do not lead to reward are recorded to file as well
             if currenttimes == times:
-                currenttimes = arduino.achieve(interval,duration,servoPin,buttonPin,starttime,output,board,top)
+                arduino.recordtime(starttime, output, "E")
+                arduino.delay(interval,starttime,buttonPin,output,board,top)
+                currenttimes = arduino.achieve(duration,servoPin,buttonPin,starttime,output,board,top)
     if upanddown == 1:
         if buttonPin.read() == 0:
             # record the releasing of the button
