@@ -97,11 +97,7 @@ def delay(time,starttime,buttonPin,output,board,top):
                     ud = 0
                     
 #the function controling action after the rat achieve the criterion
-def achieve(interval,duration,servoPin,buttonPin,starttime,output,board,top):
-    # record the time that it achieves the criterion
-    recordtime(starttime, output, "E")
-    # delay for the interval before delivering reward
-    delay(interval,starttime,buttonPin,output,board,top)
+def achieve(duration,servoPin,buttonPin,starttime,output,board,top):
     # deliver the food and record the time down
     recordtime(starttime, output, "F")
     food("deliver",board,servoPin,top)
