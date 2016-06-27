@@ -33,7 +33,7 @@ step = 0
 gap = 0
 
 # associate the port
-port = 'COM9'
+port = 'COM7'
 board = pyfirmata.Arduino(port)
 
 # Using iterator thread to avoid buffer overflow
@@ -178,8 +178,10 @@ def run():
             # if the rat achieve the criterion, that actions according to the time sequence
             # during this section, all actions and presses that do not lead to reward are recorded to file as well
             if currenttimes == times:
+                arduino.recordtime(starttime, output, "E")
+                arduino.delay(interval,starttime,buttonPin,output,board,top)
                 #record the time that it achieves the criterion                
-                currenttimes = arduino.achieve(interval,duration,servoPin,buttonPin,starttime,output,board,top)
+                currenttimes = arduino.achieve(duration,servoPin,buttonPin,starttime,output,board,top)
                 
                 # for every certain trails, the criterion need to be increased
                 # the trails that increase the criterion is the number that dividable by 'gap'
@@ -203,6 +205,7 @@ def run():
 
 # exit button function
 def exit():
+    LEDPin.write(0)
     board.exit()
     top.destroy()
     sys.exit()
