@@ -36,7 +36,7 @@ thistimes = 0 # initial the each times parameter
 
 
 # associate the port
-port = 'COM9'
+port = 'COM7'
 board = pyfirmata.Arduino(port)
 
 # Using iterator thread to avoid buffer overflow
@@ -236,8 +236,9 @@ def rangemode():
             # during this section, all actions and presses that do not lead to reward are recorded to file as well
             if currenttimes == thistimes:
                 #record the time that it achieves the criterion
-                currenttimes = arduino.achieve(interval,duration,servoPin,buttonPin,starttime,output,board,top)
-                currenttimes = 0 # reset currenttimes for new trials
+                arduino.recordtime(starttime, output, "E")
+                arduino.delay(interval,starttime,buttonPin,output,board,top)
+                currenttimes = arduino.achieve(duration,servoPin,buttonPin,starttime,output,board,top)
                 
                 thistimes = random.randint(rangemin, rangemax) # select another criterion for new trial
                 print(thistimes)
@@ -271,7 +272,9 @@ def listmode():
             
             # feed
             if currenttimes == thistimes:
-                currenttimes = arduino.achieve(interval,duration,servoPin,buttonPin,starttime,output,board,top)
+                arduino.recordtime(starttime, output, "E")
+                arduino.delay(interval,starttime,buttonPin,output,board,top)
+                currenttimes = arduino.achieve(duration,servoPin,buttonPin,starttime,output,board,top)
                 thistimes=random.choice(timeslist)
                 print(thistimes)
                 
@@ -284,6 +287,7 @@ def listmode():
 
 # exit button function
 def exit():
+    LEDPin.write(0)
     board.exit()
     top.destroy()
     sys.exit()
