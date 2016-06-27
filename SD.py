@@ -213,7 +213,7 @@ def run():
                 sdPin.write(0) # stop SD first
                 arduino.recordtime(starttime, output, "E")
                 arduino.delay(interval,starttime,buttonPin,output,board,top)
-                currenttimes = arduino.achieve(duration,servoPin,buttonPin,starttime,output,board,top)
+                currenttimes = arduino.us(duration,servoPin,buttonPin,starttime,output,board,top)
                 trials -= 1 # finish a trial and decrease the trial by 1
                 # after feeding
                 # wait for intertrial interval and record the useless presses

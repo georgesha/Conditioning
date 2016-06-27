@@ -157,7 +157,7 @@ def run():
             if currenttimes == times:
                 arduino.recordtime(starttime, output, "E")
                 arduino.delay(interval,starttime,buttonPin,output,board,top)
-                currenttimes = arduino.achieve(duration,servoPin,buttonPin,starttime,output,board,top)
+                currenttimes = arduino.us(duration,servoPin,buttonPin,starttime,output,board,top)
     if upanddown == 1:
         if buttonPin.read() == 0:
             # record the releasing of the button

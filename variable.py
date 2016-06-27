@@ -238,7 +238,7 @@ def rangemode():
                 #record the time that it achieves the criterion
                 arduino.recordtime(starttime, output, "E")
                 arduino.delay(interval,starttime,buttonPin,output,board,top)
-                currenttimes = arduino.achieve(duration,servoPin,buttonPin,starttime,output,board,top)
+                currenttimes = arduino.us(duration,servoPin,buttonPin,starttime,output,board,top)
                 
                 thistimes = random.randint(rangemin, rangemax) # select another criterion for new trial
                 print(thistimes)

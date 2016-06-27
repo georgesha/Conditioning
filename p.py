@@ -181,7 +181,7 @@ def run():
                 arduino.recordtime(starttime, output, "E")
                 arduino.delay(interval,starttime,buttonPin,output,board,top)
                 #record the time that it achieves the criterion                
-                currenttimes = arduino.achieve(duration,servoPin,buttonPin,starttime,output,board,top)
+                currenttimes = arduino.us(duration,servoPin,buttonPin,starttime,output,board,top)
                 
                 # for every certain trails, the criterion need to be increased
                 # the trails that increase the criterion is the number that dividable by 'gap'
