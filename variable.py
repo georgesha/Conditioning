@@ -225,29 +225,14 @@ def rangemode():
     global currenttimes
     global upanddown
     global thistimes
-    if buttonPin.read() == 1: 
-        if upanddown == 0:
-            upanddown = 1
-            arduino.recordtime(starttime, output, "R")
-            arduino.blink(top, LEDPin)
-            currenttimes += 1; # increase the number of presses that lead to reward
-            
-            # if the rat achieve the criterion, that actions according to the time sequence
-            # during this section, all actions and presses that do not lead to reward are recorded to file as well
-            if currenttimes == thistimes:
-                #record the time that it achieves the criterion
-                arduino.recordtime(starttime, output, "E")
-                arduino.delay(interval,starttime,buttonPin,output,board,top)
-                currenttimes = arduino.us(duration,servoPin,buttonPin,starttime,output,board,top)
-                
-                thistimes = random.randint(rangemin, rangemax) # select another criterion for new trial
-                print(thistimes)
-                
-    if upanddown == 1:
-        if buttonPin.read() == 0:
-            # record the releasing of the button
-            arduino.recordtime(starttime, output, "RL")
-            upanddown = 0
+    currenttimes,upanddown = arduino.monitor(thistimes, currenttimes, upanddown, starttime, output, buttonPin, LEDPin, top)
+    if currenttimes == thistimes:
+        #record the time that it achieves the criterion
+        arduino.recordtime(starttime, output, "E")
+        arduino.delay(interval,starttime,buttonPin,output,board,top)
+        currenttimes = arduino.us(duration,servoPin,buttonPin,starttime,output,board,top)
+        thistimes = random.randint(rangemin, rangemax) # select another criterion for new trial
+        print(thistimes)
 
     # recall itself every 1milisecond in order to keep monitoring the press
     top.after(1,rangemode)
@@ -263,25 +248,14 @@ def listmode():
     global currenttimes
     global upanddown
     global thistimes
-    if buttonPin.read() == 1:
-        if upanddown == 0:
-            upanddown = 1
-            arduino.recordtime(starttime, output, "R")
-            arduino.blink(top, LEDPin)
-            currenttimes += 1;
-            
-            # feed
-            if currenttimes == thistimes:
-                arduino.recordtime(starttime, output, "E")
-                arduino.delay(interval,starttime,buttonPin,output,board,top)
-                currenttimes = arduino.achieve(duration,servoPin,buttonPin,starttime,output,board,top)
-                thistimes=random.choice(timeslist)
-                print(thistimes)
-                
-    if upanddown == 1:
-        if buttonPin.read() == 0:
-            arduino.recordtime(starttime, output, "RL")
-            upanddown = 0
+    currenttimes,upanddown = arduino.monitor(thistimes, currenttimes, upanddown, starttime, output, buttonPin, LEDPin, top) 
+    # feed
+    if currenttimes == thistimes:
+        arduino.recordtime(starttime, output, "E")
+        arduino.delay(interval,starttime,buttonPin,output,board,top)
+        currenttimes = arduino.us(duration,servoPin,buttonPin,starttime,output,board,top)
+        thistimes=random.choice(timeslist)
+        print(thistimes)
             
     top.after(1,listmode)
 
