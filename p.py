@@ -167,38 +167,26 @@ def run():
     global duration
     global step
     global gap
-    if buttonPin.read() == 1:
-        if upanddown == 0:
-            upanddown = 1
-            arduino.recordtime(starttime, output, "R")
-            arduino.blink(top, LEDPin)
-            
-            currenttimes += 1 # increase the number of presses that lead to reward
-            
-            # if the rat achieve the criterion, that actions according to the time sequence
-            # during this section, all actions and presses that do not lead to reward are recorded to file as well
-            if currenttimes == times:
-                arduino.recordtime(starttime, output, "E")
-                arduino.delay(interval,starttime,buttonPin,output,board,top)
-                #record the time that it achieves the criterion                
-                currenttimes = arduino.us(duration,servoPin,buttonPin,starttime,output,board,top)
-                
-                # for every certain trails, the criterion need to be increased
-                # the trails that increase the criterion is the number that dividable by 'gap'
-                if totaltimes % gap==0:
-                    if step=="random":
-                        s=randint(1,3) # if user select random as step, randomly select it from one to three
-                        print (s) # and print this step out
-                        times+=s
-                    else:
-                        times+=step
-                print("current times is: " + str(times)) # print the current criterion out
-    if upanddown == 1:
-        if buttonPin.read() == 0:
-            # record the releasing of the button
-            arduino.recordtime(starttime, output, "RL")
-            upanddown = 0
-            
+    currenttimes,upanddown = arduino.monitor(times, currenttimes, upanddown, starttime, output, buttonPin, LEDPin, top)
+    # if the rat achieve the criterion, that actions according to the time sequence
+    # during this section, all actions and presses that do not lead to reward are recorded to file as well
+    if currenttimes == times:
+        arduino.recordtime(starttime, output, "E")
+        arduino.delay(interval,starttime,buttonPin,output,board,top)
+        #record the time that it achieves the criterion                
+        currenttimes = arduino.us(duration,servoPin,buttonPin,starttime,output,board,top)
+        
+        # for every certain trails, the criterion need to be increased
+        # the trails that increase the criterion is the number that dividable by 'gap'
+        if totaltimes % gap==0:
+            if step=="random":
+                s=randint(1,3) # if user select random as step, randomly select it from one to three
+                print (s) # and print this step out
+                times+=s
+            else:
+                times+=step
+        print("current times is: " + str(times)) # print the current criterion out
+    
     # recall itself every 1milisecond in order to keep monitoring the press     
     top.after(1,run)
 
