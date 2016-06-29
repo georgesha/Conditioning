@@ -95,7 +95,24 @@ def delay(time,starttime,buttonPin,output,board,top):
                 if buttonPin.read() == 0:
                     recordtime(starttime, output, "RL")
                     ud = 0
-                    
+
+def monitor(times,currenttimes,upanddown,starttime,output,buttonPin,LEDPin,top):
+    if buttonPin.read() == 1:
+        if upanddown == 0:
+            upanddown = 1
+            recordtime(starttime, output, "R")
+            blink(top, LEDPin)
+            currenttimes += 1; # increase the number of presses that lead to reward
+            print(currenttimes)
+            # if the rat achieve the criterion, that actions according to the time sequence
+            # during this section, all actions and presses that do not lead to reward are recorded to file as well
+    if upanddown == 1:
+        if buttonPin.read() == 0:
+            # record the releasing of the button
+            recordtime(starttime, output, "RL")
+            upanddown = 0
+    return (currenttimes,upanddown)
+
 #the function controling action after the rat achieve the criterion
 def us(duration,servoPin,buttonPin,starttime,output,board,top):
     # deliver the food and record the time down
@@ -109,9 +126,8 @@ def us(duration,servoPin,buttonPin,starttime,output,board,top):
     return 0
     
 #control CS according to state
-def cs(green_state,red_state):
-    greenPin.write(green_state)
-    redPin.write(red_state)
+def cs(pin,state):
+    pin.write(state)
    
 #delay for classical
 def c_delay(time,top):
