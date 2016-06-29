@@ -196,41 +196,26 @@ def run():
         sdPin.write(1) # turn on SD
         looptime = time.time() # get the start time of the new trial
         
-    if buttonPin.read() == 1:
-        if upanddown == 0:
-            print("pressed")
-            upanddown = 1
-            arduino.recordtime(starttime, output, "R")
-            LEDPin.write(1)
-            top.update()
-            sleep(0.1)
-            LEDPin.write(0)
-            currenttimes += 1 # increase the number of presses that lead to reward
-            
+    currenttimes,upanddown = arduino.monitor(times, currenttimes, upanddown, starttime, output, buttonPin, LEDPin, top)
             # if the rat achieve the criterion, that actions according to the time sequence
             # during this section, all actions and presses that do not lead to reward are recorded to file as well
-            if currenttimes == times:
-                sdPin.write(0) # stop SD first
-                arduino.recordtime(starttime, output, "E")
-                arduino.delay(interval,starttime,buttonPin,output,board,top)
-                currenttimes = arduino.us(duration,servoPin,buttonPin,starttime,output,board,top)
-                trials -= 1 # finish a trial and decrease the trial by 1
-                # after feeding
-                # wait for intertrial interval and record the useless presses
-                arduino.delay(intertrial,starttime,buttonPin,output,board,top)
-                            
-                # if the count is greater than one, 
-                # which means there remain some trails, start a new trial
-                if trials == 0:
-                    exit()
-                arduino.recordtime(starttime, output, "SDS")
-                sdPin.write(1)
-                looptime = time.time() # get the start time of the new trial
-    if upanddown == 1:
-        if buttonPin.read() == 0:
-            # record the releasing of the button
-            arduino.recordtime(starttime, output, "RL")
-            upanddown = 0
+    if currenttimes == times:
+        sdPin.write(0) # stop SD first
+        arduino.recordtime(starttime, output, "E")
+        arduino.delay(interval,starttime,buttonPin,output,board,top)
+        currenttimes = arduino.us(duration,servoPin,buttonPin,starttime,output,board,top)
+        trials -= 1 # finish a trial and decrease the trial by 1
+        # after feeding
+        # wait for intertrial interval and record the useless presses
+        arduino.delay(intertrial,starttime,buttonPin,output,board,top)
+                    
+        # if the count is greater than one, 
+        # which means there remain some trails, start a new trial
+        if trials == 0:
+            exit()
+        arduino.recordtime(starttime, output, "SDS")
+        sdPin.write(1)
+        looptime = time.time() # get the start time of the new trial
     # recall itself every 1 milisecond in order to keep monitoring the press  
     top.after(1,run)
 
