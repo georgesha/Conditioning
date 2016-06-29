@@ -138,34 +138,22 @@ def pressbutton():
     
     # call the function that contains the main body
     run()
-
+temp = 0
 def run():
     global interval
     global duration
     global times
     global currenttimes
     global upanddown
-    if buttonPin.read() == 1:
-        if upanddown == 0:
-            upanddown = 1
-            arduino.recordtime(starttime, output, "R")
-            arduino.blink(top, LEDPin)
-            currenttimes += 1; # increase the number of presses that lead to reward
-            
-            # if the rat achieve the criterion, that actions according to the time sequence
-            # during this section, all actions and presses that do not lead to reward are recorded to file as well
-            if currenttimes == times:
-                arduino.recordtime(starttime, output, "E")
-                arduino.delay(interval,starttime,buttonPin,output,board,top)
-                currenttimes = arduino.us(duration,servoPin,buttonPin,starttime,output,board,top)
-    if upanddown == 1:
-        if buttonPin.read() == 0:
-            # record the releasing of the button
-            arduino.recordtime(starttime, output, "RL")
-            upanddown = 0
-            
-    # recall itself every 1milisecond in order to keep monitoring the press       
+    global temp
+    currenttimes,upanddown = arduino.monitor(times, currenttimes, upanddown, starttime, output, buttonPin, LEDPin, top)
+    if currenttimes == times:
+        arduino.recordtime(starttime, output, "E")
+        arduino.delay(interval,starttime,buttonPin,output,board,top)
+        currenttimes = arduino.us(duration,servoPin,buttonPin,starttime,output,board,top)
+    # recall itself every 1milisecond in order to keep monitoring the press
     top.after(1,run)
+
 
 # exit button function
 def exit():
