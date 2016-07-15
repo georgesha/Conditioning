@@ -1,0 +1,206 @@
+"""
+ Fixed ratio operant conditioning
+
+ Create a GUI window to make user enter parameters
+ And implement the actions of presenting reward 
+ according to whether the rat has achieved the criterion
+
+ The circuit:
+ * Red LED attached from pin 11 to +5V
+ * 560 Ohm resistors attached from pin 11 to GND
+ * Servo attached to pin 13
+ * Button attached to pin 3
+
+ """
+
+
+# Import all needed libraries
+import tkinter # GUI window
+from time import sleep # delay to achieve time sequence
+import pyfirmata # Arduino Uno board
+import csv # saving information to files
+import sys # correctly shut down the program
+import time # give the rative time to record actions 
+import math # help do calculation when getting ralative time
+import arduino
+
+
+
+def main(port,output):
+	portname = 'COM' + str(port)
+	board = pyfirmata.Arduino(portname)
+
+	# Using iterator thread to avoid buffer overflow
+	it = pyfirmata.util.Iterator(board)
+	it.start()
+
+	# Define pins and select corresponding modes
+	buttonPin = board.get_pin('d:3:i')
+	LEDPin = board.get_pin('d:11:o')
+	servoPin = 13
+	board.digital[servoPin].mode = pyfirmata.SERVO
+
+	# start time of the experiment
+	starttime = time.time()
+
+	# open the file and save actions during experiment
+	if output == "N":
+		output = open('output_fix.txt', 'w', newline='')
+	else:
+		output = open(str(output), 'w', newline='')
+
+
+
+	# Initialize main windows with title and size
+	top = tkinter.Tk()
+	top.title("Fix Ratio")
+
+	tkinter.Label(top, text = "Pretest: Y/N").grid(column = 1, row = 1)
+	preEntry = tkinter.Entry(top)
+	preEntry.grid(column=2, row=1) # to manage the location on window
+	preEntry.focus_set()
+
+	tkinter.Label(top, text = "Load: Y/N").grid(column = 1, row = 2)
+	loadEntry = tkinter.Entry(top)
+	loadEntry.grid(column = 2, row = 2)
+	loadEntry.focus_set()
+
+	# get parameters
+
+	# how many times press = reward
+	tkinter.Label(top, text = "Times: ").grid(column = 1, row = 3)
+	timesEntry = tkinter.Entry(top)
+	timesEntry.grid(column = 2, row = 3)
+	timesEntry.focus_set()
+
+	# the interval between each time
+	tkinter.Label(top, text = "Interval: ").grid(column = 1, row = 4)
+	intervalEntry = tkinter.Entry(top)
+	intervalEntry.grid(column = 2, row = 4)
+	intervalEntry.focus_set()
+
+	# how long will the feeding last
+	tkinter.Label(top, text = "Duration: ").grid(column = 1, row = 5)
+	durationEntry = tkinter.Entry(top)
+	durationEntry.grid(column = 2, row = 5)
+	durationEntry.focus_set()
+
+
+	# Create Start and Exit button
+
+	# button for main function
+	startButton = tkinter.Button(top, text="Start", command=lambda: pressbutton(starttime,board,top,startButton,preEntry,loadEntry,timesEntry,intervalEntry,durationEntry,output,buttonPin,LEDPin,servoPin))
+	startButton.grid(column=1, row=6)
+
+	# exit button
+	exitButton = tkinter.Button(top, text="Exit", command=lambda: exit(board,top))
+	exitButton.grid(column=1, row=7)
+
+
+	# Start and open the window
+	top.mainloop()
+
+
+	
+
+def pressbutton(starttime,board,top,startButton,preEntry,loadEntry,timesEntry,intervalEntry,durationEntry,output,buttonPin,LEDPin,servoPin):
+	currenttimes = 0 # the times that the rat already press
+	upanddown = 0 # save the status of button
+
+	# disable the start button to avoid double-click during executing
+	startButton.config(state=tkinter.DISABLED)
+	# If user choose to pre-test
+	# automatically start a trial that implement all the hardware
+	# in order to check basic settings
+	if preEntry.get() == "Y":
+		# let the user to press once to check button's function
+		print ('please press the button once')
+		
+		# create a variable to count the presses that lead to reward
+		currenttimes = 0
+		
+		# create a variable to achieve correct detection of the state of button
+		# it is initially set to zero, once the button is pressed, it changed to 1, indicating the button is pressed
+		# and it will be changed to zero again only when the button is released
+		# after it back to zero, another press will be detected and count as active press
+		# meanwhile, this variable can count for the rising and falling edge of button
+		upanddown = 0
+		
+		while True:
+			if buttonPin.read() == 1: # if button is pressed, .read() will return 1
+				if upanddown == 0:
+					upanddown = 1
+					LEDPin.write(1)
+					top.update()
+					sleep(0.1)
+					LEDPin.write(0) # make the LED blink once to indicate the press lead to reward
+					currenttimes += 1
+					
+					# if one press is detected, deliver the food
+					if currenttimes == 1:
+						print ('press completed')
+						top.update()			
+						sleep(1)
+						print ('start feeding')
+						arduino.food("deliver",board,servoPin,top)
+						print ('stay feeding')
+						sleep(2)
+						print ('feeding end')
+						arduino.food("remove",board,servoPin,top)
+						currenttimes = 0 # reset for a new trail				 
+				if upanddown == 1:
+					if buttonPin.read() == 0:
+						upanddown = 0	
+	# implement the experiment				   
+	else:
+		# whether load the configuration
+		# read from existing configuration and print them out
+		
+		if loadEntry.get() == "Y":
+			with open('configuration_fix.csv', 'r', newline='') as f:
+				r = csv.reader(f)
+				data = None
+				count = 0
+				for row in r:
+					if count == 1:
+						data = row
+					count += 1
+				times = float(data[0])
+				interval = float(data[1])
+				duration= float(data[2])
+				print("read result: ")
+				print("times: " + data[0])
+				print("interval: " + data[1])
+				print("duration: " + data[2])
+
+		# don't read from existing configuration
+		else:
+			times = float(timesEntry.get()) # the value get from GUI window, need to be converted into floating number
+			interval = float(intervalEntry.get())
+			duration = float(durationEntry.get())
+			with open('configuration_fix.csv', 'w', newline='') as f: # save parameters
+				w = csv.writer(f)
+				w.writerow(["Number of times", "Interval between two times", "Duration of feeding"])
+				data = [times, interval, duration]
+				w.writerow(data)
+	
+	# call the function that contains the main body
+	run(times,starttime,interval,duration,currenttimes,upanddown,board,top,output,buttonPin,LEDPin,servoPin)
+
+def run(times,starttime,interval,duration,currenttimes,upanddown,board,top,output,buttonPin,LEDPin,servoPin):
+	currenttimes,upanddown = arduino.monitor(times, currenttimes, upanddown, starttime, output, buttonPin, LEDPin, top)
+	if currenttimes == times:
+		arduino.recordtime(starttime, output, "E")
+		arduino.delay(interval,starttime,buttonPin,output,board,top)
+		currenttimes = arduino.us(duration,servoPin,buttonPin,starttime,output,board,top)
+	# recall itself every 1milisecond in order to keep monitoring the press
+	top.after(1,run,times,starttime,interval,duration,currenttimes,upanddown,board,top,output,buttonPin,LEDPin,servoPin)
+
+
+# exit button function
+def exit(board,top):
+	board.exit()
+	top.destroy()
+
+if __name__ == "__main__":
+	main(sys.argv[1],sys.argv[2])
