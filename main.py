@@ -1,5 +1,4 @@
 from tkinter import *# GUI window
-from tkinter import ttk
 from tkinter import filedialog
 import sys
 import arduino
@@ -40,15 +39,17 @@ def run(count):
 			_thread.start_new_thread(run,(count,))
 			
 		if loadfile[count] != "":
-			var = "python " + str(loadfile[count]) + " " + str(portlist[count]) + " " + str(outputlist[count])
+			var = "python " + str(loadfile[count]) + " " + str(portlist[count]) + " " + str(outputlist[count]) + " " + str(count)
 			os.system(var)
 
-def load():
+def load(loadbutton):
 	global loadfile
 	global countload
 	loadfile[countload] = filedialog.askopenfile()
-	loadfile[countload] = str(loadfile[countload]).rsplit("/", 1)[1]
-	loadfile[countload] = str(loadfile[countload]).rsplit("'", 5)[0]
+	if loadfile[countload] != None:
+		loadbutton[countload].config(bg = "#33FFFF")
+		loadfile[countload] = str(loadfile[countload]).rsplit("/", 1)[1]
+		loadfile[countload] = str(loadfile[countload]).rsplit("'", 5)[0]
 	countload += 1
 
 # exit button function
@@ -60,22 +61,21 @@ def exit():
 
 for i in range(10):
 	Label(top, text = "Arduino: " + str(i + 1) + "  ").grid(column = 0, row = i, padx=5)
-	
-	loadbutton[i + 1] = Button(top, text="Load", command=load)
-	loadbutton[i + 1].grid(column=1, row=i)
+
+	loadbutton[i + 1] = Button(top, text="Load", command=lambda: load(loadbutton))
+	loadbutton[i + 1].grid(column = 1, row = i)
 
 	Label(top, text = "Port: COM").grid(column = 2, row = i, padx=5)
 
 	port[i + 1] = Entry(top)
-	port[i + 1].grid(column=3, row=i)
+	port[i + 1].grid(column = 3, row = i)
 
 	Label(top, text = "Output name: ").grid(column = 4, row = i, padx=5)
 
 	output[i + 1] = Entry(top)
-	output[i + 1].grid(column=5, row=i)
+	output[i + 1].grid(column = 5, row = i)
 
 	Label(top, text = "(Optional)").grid(column = 6, row = i, padx=5)
-
 
 # button for main function
 startButton = Button(top, text="Start", command=lambda: pressbutton(0))

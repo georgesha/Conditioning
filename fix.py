@@ -20,40 +20,42 @@ from time import sleep # delay to achieve time sequence
 import pyfirmata # Arduino Uno board
 import csv # saving information to files
 import sys # correctly shut down the program
-import time # give the rative time to record actions 
+import time # give the rative time to record actions
+import datetime
 import math # help do calculation when getting ralative time
 import arduino
 
 
 
-def main(port,output):
+def main(port,output,num):
 	portname = 'COM' + str(port)
 	board = pyfirmata.Arduino(portname)
+
+	if output == "N":
+		now = str(datetime.datetime.now().strftime("%Y_%m_%d__%H_%M_%S"))
+		output = "output_fix_" + str(now) + ".txt"
+
+	open(output, 'w').close()
+	title = open(str(output), 'a', newline='')
+	title.write("Arduino " + str(num) + " Fixed Ratio" + "\n")
+	title.close()
 
 	# Using iterator thread to avoid buffer overflow
 	it = pyfirmata.util.Iterator(board)
 	it.start()
 
 	# Define pins and select corresponding modes
-	buttonPin = board.get_pin('d:3:i')
-	LEDPin = board.get_pin('d:11:o')
-	servoPin = 13
-	board.digital[servoPin].mode = pyfirmata.SERVO
+	operantPin = board.get_pin('d:3:i')
+	csPin = board.get_pin('d:11:o')
+	usPin = 13
+	board.digital[usPin].mode = pyfirmata.SERVO
 
 	# start time of the experiment
 	starttime = time.time()
 
-	# open the file and save actions during experiment
-	if output == "N":
-		output = open('output_fix.txt', 'w', newline='')
-	else:
-		output = open(str(output), 'w', newline='')
-
-
-
 	# Initialize main windows with title and size
 	top = tkinter.Tk()
-	top.title("Fix Ratio")
+	top.title("Arduino " + str(num) + " Fix Ratio")
 
 	tkinter.Label(top, text = "Pretest: Y/N").grid(column = 1, row = 1)
 	preEntry = tkinter.Entry(top)
@@ -85,78 +87,89 @@ def main(port,output):
 	durationEntry.grid(column = 2, row = 5)
 	durationEntry.focus_set()
 
+	tkinter.Label(top, text = "trial times: ").grid(column = 1, row = 6)
+	trialEntry = tkinter.Entry(top)
+	trialEntry.grid(column = 2, row = 6)
+	tkinter.Label(top, text = "times").grid(column = 3, row = 6)
+
+	tkinter.Label(top, text = "length: ").grid(column = 1, row = 7)
+	lengthEntry = tkinter.Entry(top)
+	lengthEntry.grid(column = 2, row = 7)
+	tkinter.Label(top, text = "hours").grid(column = 3, row = 7)
+
+	systemlist = [board,top,starttime,output,num]
+	entrylist = [preEntry,loadEntry,timesEntry,intervalEntry,durationEntry,trialEntry,lengthEntry]
+	pinlist = [operantPin,csPin,usPin]
 
 	# Create Start and Exit button
 
 	# button for main function
-	startButton = tkinter.Button(top, text="Start", command=lambda: pressbutton(starttime,board,top,startButton,preEntry,loadEntry,timesEntry,intervalEntry,durationEntry,output,buttonPin,LEDPin,servoPin))
-	startButton.grid(column=1, row=6)
+	startButton = tkinter.Button(top, text="Start", command=lambda: pressbutton(systemlist,entrylist,pinlist,startButton))
+	startButton.grid(column=1, row=8)
 
 	# exit button
 	exitButton = tkinter.Button(top, text="Exit", command=lambda: exit(board,top))
-	exitButton.grid(column=1, row=7)
+	exitButton.grid(column=1, row=9)
 
 
 	# Start and open the window
 	top.mainloop()
 
 
-	
-
-def pressbutton(starttime,board,top,startButton,preEntry,loadEntry,timesEntry,intervalEntry,durationEntry,output,buttonPin,LEDPin,servoPin):
+def pressbutton(systemlist,entrylist,pinlist,startButton):
 	currenttimes = 0 # the times that the rat already press
 	upanddown = 0 # save the status of button
+
+	trialtimes = math.inf
+	timelength = math.inf
+
+	if entrylist[5].get() != "": # trial mode
+		trialtimes = int(entrylist[5].get())
+	if entrylist[6].get() != "":
+		timelength = float(entrylist[6].get()) * 3600 # change to second
 
 	# disable the start button to avoid double-click during executing
 	startButton.config(state=tkinter.DISABLED)
 	# If user choose to pre-test
 	# automatically start a trial that implement all the hardware
 	# in order to check basic settings
-	if preEntry.get() == "Y":
+	if entrylist[0].get() == "Y":
 		# let the user to press once to check button's function
 		print ('please press the button once')
 		
-		# create a variable to count the presses that lead to reward
 		currenttimes = 0
-		
-		# create a variable to achieve correct detection of the state of button
-		# it is initially set to zero, once the button is pressed, it changed to 1, indicating the button is pressed
-		# and it will be changed to zero again only when the button is released
-		# after it back to zero, another press will be detected and count as active press
-		# meanwhile, this variable can count for the rising and falling edge of button
 		upanddown = 0
 		
 		while True:
-			if buttonPin.read() == 1: # if button is pressed, .read() will return 1
+			if pinlist[0].read() == 1: # if button is pressed, .read() will return 1
 				if upanddown == 0:
 					upanddown = 1
-					LEDPin.write(1)
-					top.update()
+					pinlist[1].write(1)
+					systemlist[1].update()
 					sleep(0.1)
-					LEDPin.write(0) # make the LED blink once to indicate the press lead to reward
+					pinlist[1].write(0) # make the LED blink once to indicate the press lead to reward
 					currenttimes += 1
 					
 					# if one press is detected, deliver the food
 					if currenttimes == 1:
 						print ('press completed')
-						top.update()			
+						systemlist[1].update()			
 						sleep(1)
 						print ('start feeding')
-						arduino.food("deliver",board,servoPin,top)
+						arduino.food("deliver",systemlist[0],pinlist[2],systemlist[1])
 						print ('stay feeding')
 						sleep(2)
 						print ('feeding end')
-						arduino.food("remove",board,servoPin,top)
+						arduino.food("remove",systemlist[0],pinlist[2],systemlist[1])
 						currenttimes = 0 # reset for a new trail				 
-				if upanddown == 1:
-					if buttonPin.read() == 0:
-						upanddown = 0	
-	# implement the experiment				   
+			if upanddown == 1:
+				if pinlist[0].read() == 0:
+					upanddown = 0	
+	# implement the experiment
 	else:
 		# whether load the configuration
 		# read from existing configuration and print them out
-		
-		if loadEntry.get() == "Y":
+		if entrylist[1].get() == "Y":
 			with open('configuration_fix.csv', 'r', newline='') as f:
 				r = csv.reader(f)
 				data = None
@@ -175,26 +188,36 @@ def pressbutton(starttime,board,top,startButton,preEntry,loadEntry,timesEntry,in
 
 		# don't read from existing configuration
 		else:
-			times = float(timesEntry.get()) # the value get from GUI window, need to be converted into floating number
-			interval = float(intervalEntry.get())
-			duration = float(durationEntry.get())
+			times = float(entrylist[2].get()) # the value get from GUI window, need to be converted into floating number
+			interval = float(entrylist[3].get())
+			duration = float(entrylist[4].get())
 			with open('configuration_fix.csv', 'w', newline='') as f: # save parameters
 				w = csv.writer(f)
 				w.writerow(["Number of times", "Interval between two times", "Duration of feeding"])
 				data = [times, interval, duration]
 				w.writerow(data)
-	
+	paralist = [times,interval,duration]
+	unparalist = [currenttimes,upanddown,trialtimes,timelength]
+	para = open(str(systemlist[3]), 'a', newline='')
+	para.write("times: " + str(times) + "\n")
+	para.write("interval: " + str(interval) + "\n")
+	para.write("duration: " + str(duration) + "\n")
 	# call the function that contains the main body
-	run(times,starttime,interval,duration,currenttimes,upanddown,board,top,output,buttonPin,LEDPin,servoPin)
+	run(systemlist,paralist,unparalist,pinlist)
 
-def run(times,starttime,interval,duration,currenttimes,upanddown,board,top,output,buttonPin,LEDPin,servoPin):
-	currenttimes,upanddown = arduino.monitor(times, currenttimes, upanddown, starttime, output, buttonPin, LEDPin, top)
-	if currenttimes == times:
-		arduino.recordtime(starttime, output, "E")
-		arduino.delay(interval,starttime,buttonPin,output,board,top)
-		currenttimes = arduino.us(duration,servoPin,buttonPin,starttime,output,board,top)
+def run(systemlist,paralist,unparalist,pinlist):
+	if unparalist[2] == 0 or time.time() - systemlist[2] >= unparalist[3]:
+		exit(systemlist[0], systemlist[1])
+	unparalist[0],unparalist[1] = arduino.monitor(paralist[0], unparalist[0], unparalist[1], systemlist[2], systemlist[3], pinlist[0], pinlist[1], systemlist[1],systemlist[4])
+	if unparalist[0] == paralist[0]:
+		arduino.recordtime(systemlist[2], systemlist[3], "E")
+		arduino.delay(paralist[1],systemlist[2],pinlist[0],systemlist[3],systemlist[0],systemlist[1])
+		unparalist[0] = arduino.us(paralist[2],pinlist[2],pinlist[0],systemlist[2],systemlist[3],systemlist[0],systemlist[1])
+		unparalist[2] -= 1
+		print("times to go: " + str(unparalist[2]))
+		print("time already pass: " + str(time.time() - systemlist[2]))
 	# recall itself every 1milisecond in order to keep monitoring the press
-	top.after(1,run,times,starttime,interval,duration,currenttimes,upanddown,board,top,output,buttonPin,LEDPin,servoPin)
+	systemlist[1].after(1,run,systemlist,paralist,unparalist,pinlist)
 
 
 # exit button function
@@ -203,4 +226,4 @@ def exit(board,top):
 	top.destroy()
 
 if __name__ == "__main__":
-	main(sys.argv[1],sys.argv[2])
+	main(sys.argv[1],sys.argv[2],sys.argv[3])
