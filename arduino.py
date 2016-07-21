@@ -2,7 +2,6 @@ import math
 import time
 import pyfirmata # Arduino Uno board
 from time import sleep # achieve the delay
-import loadreal
 import csv
 # record the time for each action
 '''
@@ -161,13 +160,4 @@ def c_delay(time,top):
 	while i <=  time:
 		i += 1
 		top.update()
-		sleep(0.01)   
-
-def load(filename,port):
-	print(port)
-	global countardu
-	portconfig = open('port.csv', 'a', newline='')
-	w = csv.writer(portconfig)
-	w.writerow([port])
-	portconfig.close()
-	loadreal.loadfile(filename)
+		sleep(0.01)
