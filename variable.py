@@ -129,7 +129,7 @@ def main(port,output,num):
 
 	# exit button
 	exitButton = tkinter.Button(top, text="Exit", command=lambda: exit(board,top))
-	exitButton.grid(column=2, row=11)
+	exitButton.grid(column=2, row=10)
 
 	#start and open the window
 	top.mainloop()
@@ -258,6 +258,7 @@ def pressbutton(systemlist,entrylist,pinlist,startButton):
 	para.write("rangemax: " + str(rangemax) + "\n")
 	para.write("timeslist: " + str(timeslist) + "\n")
 	para.write("mode: " + str(mode) + "\n")
+	para.write(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
 	# call the function that contains the sub-function	
 	run(systemlist,paralist,unparalist,pinlist)
 

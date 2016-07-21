@@ -109,7 +109,7 @@ def main(port,output,num):
 
 	# exit button
 	exitButton = tkinter.Button(top, text="Exit", command=lambda: exit(board,top))
-	exitButton.grid(column=1, row=9)
+	exitButton.grid(column=2, row=8)
 
 
 	# Start and open the window
@@ -202,6 +202,7 @@ def pressbutton(systemlist,entrylist,pinlist,startButton):
 	para.write("times: " + str(times) + "\n")
 	para.write("interval: " + str(interval) + "\n")
 	para.write("duration: " + str(duration) + "\n")
+	para.write(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
 	# call the function that contains the main body
 	run(systemlist,paralist,unparalist,pinlist)
 

@@ -236,6 +236,7 @@ def pressbutton(systemlist,entrylist,pinlist,startButton):
 	para.write("duration: " + str(duration) + "\n")
 	para.write("step: " + str(step) + "\n")
 	para.write("gap: " + str(gap) + "\n")
+	para.write(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
 	# call the function that contains the main body
 	run(systemlist,paralist,unparalist,pinlist)
 
