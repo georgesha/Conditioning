@@ -19,7 +19,6 @@ outputlist = {}
 for i in range(10):
 	loadfile[i + 1] = ""
 	outputlist[i + 1] = "N"
-countload = 1
 
 def pressbutton(count):
 	global portlist
@@ -42,28 +41,62 @@ def run(count):
 			var = "python " + str(loadfile[count]) + " " + str(portlist[count]) + " " + str(outputlist[count]) + " " + str(count)
 			os.system(var)
 
-def load(loadbutton):
+def load(num):
 	global loadfile
-	global countload
-	loadfile[countload] = filedialog.askopenfile()
-	if loadfile[countload] != None:
-		loadbutton[countload].config(bg = "#33FFFF")
-		loadfile[countload] = str(loadfile[countload]).rsplit("/", 1)[1]
-		loadfile[countload] = str(loadfile[countload]).rsplit("'", 5)[0]
-	countload += 1
+	loadfile[num] = filedialog.askopenfile()
+	if loadfile[num] != None:
+		if num == 1:
+			loadbutton1.config(bg = "#33FFFF")
+		if num == 2:
+			loadbutton2.config(bg = "#33FFFF")
+		if num == 3:
+			loadbutton3.config(bg = "#33FFFF")
+		if num == 4:
+			loadbutton4.config(bg = "#33FFFF")
+		if num == 5:
+			loadbutton5.config(bg = "#33FFFF")
+		if num == 6:
+			loadbutton6.config(bg = "#33FFFF")
+		if num == 7:
+			loadbutton7.config(bg = "#33FFFF")
+		if num == 8:
+			loadbutton8.config(bg = "#33FFFF")
+		if num == 9:
+			loadbutton9.config(bg = "#33FFFF")
+		if num == 10:
+			loadbutton10.config(bg = "#33FFFF")
+		loadfile[num] = str(loadfile[num]).rsplit("/", 1)[1]
+		loadfile[num] = str(loadfile[num]).rsplit("'", 5)[0]
 
 # exit button function
 def exit():
 	top.destroy()
 	sys.exit()
 
+loadbutton1 = Button(top, text="Load", command=lambda: load(1))
+loadbutton1.grid(column = 1, row = 0)
+loadbutton2 = Button(top, text="Load", command=lambda: load(2))
+loadbutton2.grid(column = 1, row = 1)
+loadbutton3 = Button(top, text="Load", command=lambda: load(3))
+loadbutton3.grid(column = 1, row = 2)
+loadbutton4 = Button(top, text="Load", command=lambda: load(4))
+loadbutton4.grid(column = 1, row = 3)
+loadbutton5 = Button(top, text="Load", command=lambda: load(5))
+loadbutton5.grid(column = 1, row = 4)
+loadbutton6 = Button(top, text="Load", command=lambda: load(6))
+loadbutton6.grid(column = 1, row = 5)
+loadbutton7 = Button(top, text="Load", command=lambda: load(7))
+loadbutton7.grid(column = 1, row = 6)
+loadbutton8 = Button(top, text="Load", command=lambda: load(8))
+loadbutton8.grid(column = 1, row = 7)
+loadbutton9 = Button(top, text="Load", command=lambda: load(9))
+loadbutton9.grid(column = 1, row = 8)
+loadbutton10 = Button(top, text="Load", command=lambda: load(10))
+loadbutton10.grid(column = 1, row = 9)
 
 
 for i in range(10):
 	Label(top, text = "Arduino: " + str(i + 1) + "  ").grid(column = 0, row = i, padx=5)
-
-	loadbutton[i + 1] = Button(top, text="Load", command=lambda: load(loadbutton))
-	loadbutton[i + 1].grid(column = 1, row = i)
 
 	Label(top, text = "Port: COM").grid(column = 2, row = i, padx=5)
 
@@ -85,4 +118,4 @@ startButton.grid(column=0, row=10)
 exitButton = Button(top, text="Exit", command=exit)
 exitButton.grid(column=1, row=10)
 
-top.mainloop()
+top.mainloop()  
