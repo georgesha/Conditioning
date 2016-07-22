@@ -174,3 +174,38 @@ def c_delay(time,top):
 		i += 1
 		top.update()
 		sleep(0.01)
+
+def pretest(board,top,inputlist,outputlist): # take input and output pin list as parameters
+	# test input
+	inputlength = len(inputlist)
+	count = 0
+	if inputlength == 0:
+		print("No input")
+	else:
+		while count < inputlength:
+			top.update()
+			if inputlist[count].read() == 1:
+				print("input " + str(count + 1) + " detected")
+				count += 1
+		print("All input tested")
+
+
+	# test output
+	if len(outputlist) == 0:
+		print("No output")
+	else:
+		for output in outputlist:	
+			try:
+				servo = int(output)
+				board.digital[servo].write(180)
+				top.update()
+				sleep(1)
+				board.digital[servo].write(1)
+			except TypeError:
+				for i in range(5):
+					output.write(1)
+					sleep(0.5)
+					output.write(0)
+					sleep(1)
+		print("All output tested")
+	print("Test done")

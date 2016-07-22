@@ -155,14 +155,9 @@ def pressbutton(systemlist,entrylist,pinlist,startButton):
 	# in order to check basic settings
 	if entrylist[0].get() == "Y": # if the box for pre-test is checked, it .get() will return '1'
 		# assign simple paramters for pre-test
-		t=1
-		dur_c=5
-		dur_u=3
-		btw=-2
-		inter='random'
-		red=1
-		green=1
-		forward(t,dur_c,dur_u,btw,inter,red,green)
+		inputlist = []
+		outputlist = [pinlist[0],pinlist[1],pinlist[2]]
+		arduino.pretest(systemlist[0], systemlist[1], inputlist, outputlist)		
 		
 	# implement the experiment
 	else:

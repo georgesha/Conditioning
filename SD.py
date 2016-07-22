@@ -147,31 +147,9 @@ def pressbutton(systemlist,entrylist,pinlist,startButton):
 	# automatically start a trial that implement all the hardware
 	# in order to check basic settings
 	if entrylist[0].get() == "Y":
-		sdPin.write(1)
-		print ('please press the button once')
-		if buttonPin.read() == 1: # if button is pressed, .read() will return 1
-			if upanddown==0:
-				sdPin.write(0)
-				LEDPin.write(1)
-				sleep(0.1)
-				LEDPin.write(0) # make the LED blink once to indicate the press lead to reward
-				currenttimes += 1 # count it into presses that lead to reward
-				
-				# if one press is detected, deliver the food
-				if currenttimes == 1:
-					print ('press completed')
-					top.update()			
-					sleep(1)
-					print ('start feeding')
-					arduino.food("deliver",board,servoPin,top)
-					print ('stay feeding')
-					sleep(2)
-					print ('feeding end')
-					arduino.food("remove",board,servoPin,top)
-					currenttimes = 0 # reset for a new trail				 
-	if upanddown == 1:
-		if buttonPin.read() == 0:
-			upanddown = 0 
+		inputlist = [pinlist[0]]
+		outputlist = [pinlist[1],pinlist[2],pinlist[3]]
+		arduino.pretest(systemlist[0], systemlist[1], inputlist, outputlist)
 
 	# implement the experiment	
 	else:
