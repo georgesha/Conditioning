@@ -196,15 +196,15 @@ def pressbutton(systemlist,entrylist,pinlist,startButton):
 				w.writerow(["Number of times", "Interval between two times", "Duration of feeding"])
 				data = [times, interval, duration]
 				w.writerow(data)
-	paralist = [times,interval,duration]
-	unparalist = [currenttimes,upanddown,trialtimes,timelength]
-	para = open(str(systemlist[3]), 'a', newline='')
-	para.write("times: " + str(times) + "\n")
-	para.write("interval: " + str(interval) + "\n")
-	para.write("duration: " + str(duration) + "\n")
-	para.write(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
-	# call the function that contains the main body
-	run(systemlist,paralist,unparalist,pinlist)
+		paralist = [times,interval,duration]
+		unparalist = [currenttimes,upanddown,trialtimes,timelength]
+		para = open(str(systemlist[3]), 'a', newline='')
+		para.write("times: " + str(times) + "\n")
+		para.write("interval: " + str(interval) + "\n")
+		para.write("duration: " + str(duration) + "\n")
+		para.write(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+		# call the function that contains the main body
+		run(systemlist,paralist,unparalist,pinlist)
 
 def run(systemlist,paralist,unparalist,pinlist):
 	if unparalist[2] == 0 or time.time() - systemlist[2] >= unparalist[3]:

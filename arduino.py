@@ -84,6 +84,19 @@ def food(f,board,servo,top,buttonPin,starttime,output):
 				if buttonPin.read() == 0:
 					recordtime(starttime, output, "RL")
 					ud = 0
+def c_food(f,board,servo,top):
+	if f=="deliver":
+		for i in range(0, 180):
+			board.digital[servo].write(i) 
+			# well-built function to control servo which make the user can directly write the angle of servo		
+			top.update()
+			sleep(0.01)
+	elif f=="remove":
+		for i in range(180,0,-1):
+			board.digital[servo].write(i) 
+			# well-built function to control servo which make the user can directly write the angle of servo
+			top.update()
+			sleep(0.01)
 
 #delay
 """

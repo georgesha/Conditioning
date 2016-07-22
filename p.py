@@ -125,11 +125,11 @@ def main(port,output,num):
 
 	# button for main function
 	startButton = tkinter.Button(top, text="Start", command=lambda: pressbutton(systemlist,entrylist,pinlist,startButton))
-	startButton.grid(column=2, row=10)
+	startButton.grid(column=1, row=10)
 
 	# exit button
 	exitButton = tkinter.Button(top, text="Exit", command=lambda: exit(board,top))
-	exitButton.grid(column=3, row=10)
+	exitButton.grid(column=2, row=10)
 
 	top.mainloop()
 
@@ -227,18 +227,17 @@ def pressbutton(systemlist,entrylist,pinlist,startButton):
 				w.writerow(["Number of press", "Interval between press and feed", "Duration of feeding","Incresing step","Trials between increment"])
 				data = [times,interval,duration,step,gap]
 				w.writerow(data)
-
-	paralist = [times,interval,duration,step,gap,currenttimes,upanddown,totaltimes]
-	unparalist = [currenttimes,upanddown,totaltimes,trialtimes,timelength]
-	para = open(str(systemlist[3]), 'a', newline='')
-	para.write("times: " + str(times) + "\n")
-	para.write("interval: " + str(interval) + "\n")
-	para.write("duration: " + str(duration) + "\n")
-	para.write("step: " + str(step) + "\n")
-	para.write("gap: " + str(gap) + "\n")
-	para.write(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
-	# call the function that contains the main body
-	run(systemlist,paralist,unparalist,pinlist)
+		paralist = [times,interval,duration,step,gap,currenttimes,upanddown,totaltimes]
+		unparalist = [currenttimes,upanddown,totaltimes,trialtimes,timelength]
+		para = open(str(systemlist[3]), 'a', newline='')
+		para.write("times: " + str(times) + "\n")
+		para.write("interval: " + str(interval) + "\n")
+		para.write("duration: " + str(duration) + "\n")
+		para.write("step: " + str(step) + "\n")
+		para.write("gap: " + str(gap) + "\n")
+		para.write(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+		# call the function that contains the main body
+		run(systemlist,paralist,unparalist,pinlist)
 
 def run(systemlist,paralist,unparalist,pinlist):
 	if unparalist[3] == 0 or time.time() - systemlist[2] >= unparalist[4]:

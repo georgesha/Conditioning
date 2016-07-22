@@ -249,18 +249,18 @@ def pressbutton(systemlist,entrylist,pinlist,startButton):
 				w.writerow(["Interval between two times", "Duration of feeding", "Min of range", "Max of range", "Input list", "mode"])
 				data = [interval, duration, rangemin, rangemax, timeslist, mode]
 				w.writerow(data)
-	paralist = [interval,duration,rangemin,rangemax,timeslist,mode,currenttimes,upanddown]
-	unparalist = [currenttimes,upanddown,trialtimes,timelength]
-	para = open(str(systemlist[3]), 'a', newline='')
-	para.write("interval: " + str(interval) + "\n")
-	para.write("duration: " + str(duration) + "\n")
-	para.write("rangemin: " + str(rangemin) + "\n")
-	para.write("rangemax: " + str(rangemax) + "\n")
-	para.write("timeslist: " + str(timeslist) + "\n")
-	para.write("mode: " + str(mode) + "\n")
-	para.write(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
-	# call the function that contains the sub-function	
-	run(systemlist,paralist,unparalist,pinlist)
+		paralist = [interval,duration,rangemin,rangemax,timeslist,mode,currenttimes,upanddown]
+		unparalist = [currenttimes,upanddown,trialtimes,timelength]
+		para = open(str(systemlist[3]), 'a', newline='')
+		para.write("interval: " + str(interval) + "\n")
+		para.write("duration: " + str(duration) + "\n")
+		para.write("rangemin: " + str(rangemin) + "\n")
+		para.write("rangemax: " + str(rangemax) + "\n")
+		para.write("timeslist: " + str(timeslist) + "\n")
+		para.write("mode: " + str(mode) + "\n")
+		para.write(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+		# call the function that contains the sub-function	
+		run(systemlist,paralist,unparalist,pinlist)
 
 def run(systemlist,paralist,unparalist,pinlist):
 	thistimes = 0
